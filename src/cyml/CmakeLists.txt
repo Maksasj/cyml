@@ -1,0 +1,1 @@
+add_library(cyml STATIC cyml.c)
