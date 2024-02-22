@@ -2,6 +2,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 int main() {
     TEST_CASE {
@@ -95,6 +96,25 @@ int main() {
         ensure(*((CYMLType*) result.tokens[0].value) == TYPE_STRING)
         ensure(strcmp("label", result.tokens[1].value) == 0);
         ensure(strcmp("Hello \" world !", result.tokens[2].value) == 0);
+
+        cyml_free_token_result(result);
+    }
+
+    TEST_CASE {
+        CYMLTokenResult result = cyml_tokens_parse_string("FLOAT label -15.69 \"");
+
+        ensure(result.code == CYML_ERROR);
+
+        cyml_free_token_result(result);
+    }
+
+    TEST_CASE {
+        CYMLTokenResult result = cyml_tokens_parse_string("");
+
+        ensure(result.code == CYML_OK);
+
+        ensure(result.tokenCount == 0);
+        ensure(result.tokens == NULL);
 
         cyml_free_token_result(result);
     }

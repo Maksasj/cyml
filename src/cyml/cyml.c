@@ -218,6 +218,8 @@ CYMLTokenResult cyml_tokens_parse_string(const char* string) {
                     result.tokens[result.tokenCount] = token;
 
                     ++result.tokenCount;
+                } else {
+                    return cyml_error_token_result();
                 }
 
                 if(sub != NULL) {
