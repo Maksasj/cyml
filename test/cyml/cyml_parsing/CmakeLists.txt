@@ -1,6 +1,0 @@
-add_executable(cyml_parsing_test_0 cyml_parsing_test_0.c)
-target_link_libraries(cyml_parsing_test_0 cyml)
-
-enable_testing()
-
-add_test(NAME cyml_parsing_test_0 COMMAND $<TARGET_FILE:cyml_parsing_test_0>)

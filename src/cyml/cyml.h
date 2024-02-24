@@ -29,13 +29,6 @@ typedef enum CYMLType {
     TYPE_UNSIGNED_INT
 } CYMLType;
 
-typedef struct CYMLNode {
-    CYMLType type;
-
-    unsigned int dataSize;
-    void* data;
-} CYMLNode;
-
 typedef enum CYMLResult {
     CYML_OK,
     CYML_ERROR
@@ -63,5 +56,27 @@ CYMLTokenResult cyml_empty_token_result(CYMLResult code);
 CYMLTokenResult cyml_error_token_result();
 
 CYMLTokenResult cyml_tokens_parse_string(const char* string);
+
+typedef struct CYMLNode {
+    CYMLType type;
+
+    unsigned int dataSize;
+    void* data;
+
+    char* label;
+} CYMLNode;
+
+CYMLNode* cyml_create_node(CYMLType type, const char* label);
+
+CYMLNode* cyml_append_string_node(CYMLNode* node, const char* label, const char* value);
+CYMLNode* cyml_append_float_node(CYMLNode* node, const char* label, float value);
+CYMLNode* cyml_append_number_node(CYMLNode* node, const char* label, unsigned int value);
+CYMLNode* cyml_append_tuple_node(CYMLNode* node, const char* label);
+
+CYMLNode* cyml_parse_string(const char* string);
+
+char* cyml_stringify_node(CYMLNode* node);
+
+void cyml_free_node(CYMLNode* node);
 
 #endif

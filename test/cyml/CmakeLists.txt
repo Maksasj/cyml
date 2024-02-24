@@ -1,1 +1,14 @@
-add_subdirectory(cyml_parsing)
+add_executable(cyml_parsing_test_0 cyml_parsing_test_0.c)
+target_link_libraries(cyml_parsing_test_0 cyml)
+
+add_executable(cyml_parsing_test_1 cyml_parsing_test_1.c)
+target_link_libraries(cyml_parsing_test_1 cyml)
+
+add_executable(cyml_test_2 cyml_test_2.c)
+target_link_libraries(cyml_test_2 cyml)
+
+enable_testing()
+
+add_test(NAME cyml_parsing_test_0 COMMAND $<TARGET_FILE:cyml_parsing_test_0>)
+add_test(NAME cyml_parsing_test_1 COMMAND $<TARGET_FILE:cyml_parsing_test_1>)
+add_test(NAME cyml_test_2 COMMAND $<TARGET_FILE:cyml_test_2>)

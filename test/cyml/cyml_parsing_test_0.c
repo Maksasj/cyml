@@ -97,6 +97,7 @@ int main() {
         ensure(strcmp("label", result.tokens[1].value) == 0);
         ensure(strcmp("Hello \" world !", result.tokens[2].value) == 0);
 
+
         cyml_free_token_result(result);
     }
 

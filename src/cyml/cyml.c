@@ -6,6 +6,7 @@
 #include <errno.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdarg.h>
 
 CYMLTokenResult cyml_empty_token_result(CYMLResult code) {
     CYMLTokenResult result = {
@@ -247,3 +248,148 @@ CYMLTokenResult cyml_tokens_parse_string(const char* string) {
 
     return result;
 }
+
+CYMLNode* cyml_create_node(CYMLType type, const char* label) {
+    CYMLNode* node = malloc(sizeof(CYMLNode));
+
+    node->type = type;
+    node->data = NULL;
+    node->dataSize = 0;
+
+    unsigned long labelLength = strlen(label);
+    node->label = malloc(labelLength);
+    strcpy(node->label, label);
+
+    return node;
+}
+
+CYMLNode* cyml_append_empty_node(CYMLNode* node) {
+    if(node->data == NULL) {
+        node->dataSize = 1;
+        node->data = malloc(sizeof(CYMLNode));
+    } else {
+        ++node->dataSize;
+        node->data = realloc(node->data, sizeof(CYMLNode) * node->dataSize);
+
+        if(node->data == NULL)
+            perror("Failed to reallocate node data while appending empty node");
+    }
+
+    return &((CYMLNode*) node->data)[node->dataSize - 1];
+}
+
+CYMLNode* cyml_append_string_node(CYMLNode* node, const char* label, const char* value) {
+    CYMLNode* child = cyml_append_empty_node(node);
+
+    unsigned long labelLength = strlen(label);
+    unsigned long valueLength = strlen(value);
+
+    child->type = TYPE_STRING;
+    child->data = malloc(valueLength);
+    strcpy(child->data, value);
+
+    child->label = malloc(labelLength);
+    strcpy(child->label, label);
+
+    return child;
+}
+
+CYMLNode* cyml_append_float_node(CYMLNode* node, const char* label, float value) {
+    return NULL;
+}
+
+CYMLNode* cyml_append_number_node(CYMLNode* node, const char* label, unsigned int value) {
+    return NULL;
+}
+
+CYMLNode* cyml_append_tuple_node(CYMLNode* node, const char* label) {
+    return NULL;
+}
+
+CYMLNode* cyml_parse_string(const char* string) {
+    CYMLTokenResult result = cyml_tokens_parse_string(string);
+
+    if(result.code == CYML_ERROR)
+        return NULL;
+
+    CYMLNode* start = cyml_create_node(TYPE_TUPLE, "BASE");
+
+    return start;
+}
+
+void cyml_utils_append_to_string(char** target, const char *format, ...) {
+    va_list args;
+    va_start(args, format);
+
+    size_t sz = vsnprintf(*target, 0, format, args);
+
+    if (*target == NULL) {
+        *target = malloc(sz + 1);
+        vsnprintf(*target, sz + 1, format, args);
+    } else {
+        char* tmp = malloc(sz + 1);;
+        vsnprintf(tmp, sz + 1, format, args);
+
+        unsigned long length = strlen(*target);
+
+        *target = realloc(*target, length + sz + 1);
+        strcat(*target, tmp);
+        free(tmp);
+    }
+
+    va_end(args);
+}
+
+void cyml_stringify_node_internal(char** target, CYMLNode* node, unsigned int depth) {
+    for(unsigned int i = 0; i < depth; ++i)
+        cyml_utils_append_to_string(target, "    ");
+
+    if(node->type == TYPE_TUPLE) {
+        if(node->label == NULL) {
+            cyml_utils_append_to_string(target, "TUPLE UNNAMED BEGIN\n");
+        } else {
+            cyml_utils_append_to_string(target, "TUPLE %s BEGIN\n", node->label);
+        }
+
+        if(node->data != NULL) {
+            for(unsigned long i = 0; i < node->dataSize; ++i) {
+                CYMLNode* child = &((CYMLNode*) node->data)[i];
+                cyml_stringify_node_internal(target, child, depth + 1);
+            }
+        }
+
+        cyml_utils_append_to_string(target, "END\n");
+    } else if(node->type == TYPE_STRING) {
+        cyml_utils_append_to_string(target, "STRING %s \"%s\"\n", node->label, node->data);
+    } else if(node->type == TYPE_FLOAT) {
+        // Todo
+    } else if(node->type == TYPE_UNSIGNED_INT) {
+        // Todo
+    }
+}
+
+char* cyml_stringify_node(CYMLNode* node) {
+    char* result = NULL;
+
+    cyml_stringify_node_internal(&result, node, 0);
+
+    return result;
+}
+
+void cyml_free_node(CYMLNode* node) {
+    if(node == NULL)
+        return;
+
+    if(node->type == TYPE_TUPLE)
+        for(unsigned int i = 0; i < node->dataSize; ++i)
+            cyml_free_node(&((CYMLNode*) node->data)[i]);
+
+    if(node->type != TYPE_UNDEFINED && node->type != TYPE_TUPLE)
+        free(node->data);
+
+    if(node->label != NULL)
+        free(node->label);
+
+    free(node);
+}
+
